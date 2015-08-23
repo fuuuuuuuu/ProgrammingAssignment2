@@ -1,15 +1,52 @@
-## Put comments here that give an overall description of what your
-## functions do
+# Creates a special "matrix" object that can cache its inverse
+makeCacheMatrix <- function() {
+    data <- NULL
+    data_inverted <- NULL
 
-## Write a short comment describing this function
+    get <- function() {
+        data
+    }
 
-makeCacheMatrix <- function(x = matrix()) {
+    set <- function(x) {
+        data <<- x
+        data_inverted <<- NULL
+    }
 
+    get_inverted <- function() {
+        data_inverted
+    }
+
+    set_inverted <- function(x_inverted) {
+        data_inverted <<- x_inverted
+    }
+
+    list(set = set, get = get,
+         set_inverted = set_inverted,
+         get_inverted = get_inverted)
 }
 
-
-## Write a short comment describing this function
-
+# Computes the inverse of the special "matrix" returned by makeCacheMatrix.
+# If the inverse has already been calculated (and the matrix has not changed),
+# then cacheSolve retrieves the inverse from the cache.
 cacheSolve <- function(x, ...) {
-        ## Return a matrix that is the inverse of 'x'
+    data_inverted <- x$get_inverted()
+    if(!is.null(data_inverted)) {
+        message("Inverted matrix already calculated")
+        return(data_inverted)
+    }
+
+    data <- x$get()
+    message("Calculating inverted matrix")
+    data_inverted <- solve(data, ...)
+    x$set_inverted(data_inverted)
+    data_inverted
 }
+
+# Test case
+m_cacher <- makeCacheMatrix()
+m_cacher$set(matrix(rnorm(9), 3, 3))
+m_inverted <- cacheSolve(m_cacher) # Should print "Calculating inverted matrix"
+m_inverted <- cacheSolve(m_cacher) # Should print "Inverted matrix already calculated"
+print(m_cacher$get())
+print(m_inverted)
+
